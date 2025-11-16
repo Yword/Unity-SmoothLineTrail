@@ -247,9 +247,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   trailLifetime: 0.4
   minPointDistance: 0.1
+  emitting: 1
   ignoreTimeScale: 0
   updateType: 1
-  iterations: 2
+  iterations: 3
 --- !u!120 &375201517
 LineRenderer:
   serializedVersion: 2

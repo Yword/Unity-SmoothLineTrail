@@ -12,13 +12,14 @@ public class SmoothLineTrailController : MonoBehaviour
         FixedUpdate,
         Manual
     }
-    
-    
+
+
     public float trailLifetime = 1;
     public float minPointDistance = 0.1f;
+    public bool emitting = true;
     public bool ignoreTimeScale = false;
     public UpdateType updateType;
-    
+
     [Range(0, 10)]
     public int iterations = 1;
 
@@ -45,8 +46,8 @@ public class SmoothLineTrailController : MonoBehaviour
             UpdateTrail();
         }
     }
-    
-    
+
+
     private void FixedUpdate()
     {
         if (updateType == UpdateType.FixedUpdate)
@@ -54,8 +55,8 @@ public class SmoothLineTrailController : MonoBehaviour
             UpdateTrail();
         }
     }
-    
-    
+
+
     private void LateUpdate()
     {
         if (updateType == UpdateType.LateUpdate)
@@ -69,30 +70,49 @@ public class SmoothLineTrailController : MonoBehaviour
     {
         Vector3 currentPosition = _transform.position;
 
-        // Ensure that it has at least 2 points
-        while (points.Count < 2)
+        if (emitting)
         {
-            points.Insert(0, currentPosition);
-            times.Insert(0, 0);
+            // Ensure that it has at least 2 points
+            while (points.Count < 2)
+            {
+                points.Insert(0, currentPosition);
+                times.Insert(0, 0);
+            }
         }
 
-        // Add new point if the distance between the current position and the previous point
-        // is greater than the minPointDistance
-        if ((points[1] - currentPosition).sqrMagnitude > minPointDistance * minPointDistance)
+        if (points.Count > 1)
         {
-            points.Insert(0, currentPosition);
-            times.Insert(0, 0);
-        }
+            // If the distance between the current position and the previous point
+            // is greater than the minPointDistance
+            if ((points[1] - currentPosition).sqrMagnitude > minPointDistance * minPointDistance)
+            {
+                if (emitting)
+                {
+                    // Add new point 
+                    points.Insert(0, currentPosition);
+                    times.Insert(0, 0);
+                }
+                else
+                {
+                    // Shift the points forward
+                    for (int i = points.Count - 1; i > 0; i--)
+                    {
+                        points[i] = points[i - 1];
+                    }
 
+                    points[0] = currentPosition;
+                }
+            }
+        }
 
         // Update the lifetime of each point and remove points that exceed the trail lifetime
 
         float deltaTime = ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
-      
+
         for (int i = points.Count - 1; i > 0; i--)
         {
             times[i] += deltaTime;
-            
+
             if (times[i] > trailLifetime)
             {
                 points.RemoveAt(i);
@@ -100,10 +120,18 @@ public class SmoothLineTrailController : MonoBehaviour
             }
         }
 
-        // Set the first point as the current position
-        points[0] = currentPosition;
-        times[0] = 0;
+        if (!emitting && points.Count < 2)
+        {
+            points.Clear();
+            times.Clear();
+        }
 
+        if (points.Count > 0)
+        {
+            // Set the first point as the current position
+            points[0] = currentPosition;
+            times[0] = 0;
+        }
 
         Vector3[] pointsArray = null;
 
@@ -122,8 +150,8 @@ public class SmoothLineTrailController : MonoBehaviour
         _lineRenderer.positionCount = pointsArray.Length;
         _lineRenderer.SetPositions(pointsArray);
     }
-    
-    
+
+
     public void Clear()
     {
         times.Clear();
