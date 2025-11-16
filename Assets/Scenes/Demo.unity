@@ -250,7 +250,7 @@ MonoBehaviour:
   emitting: 1
   ignoreTimeScale: 0
   updateType: 1
-  iterations: 3
+  iterations: 2
 --- !u!120 &375201517
 LineRenderer:
   serializedVersion: 2
